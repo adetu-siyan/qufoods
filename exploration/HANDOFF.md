@@ -48,7 +48,7 @@ total_amount = order_subtotal * (1 - discount_applied)
 ```
 
 **not** `order_subtotal - discount_applied`, even though that's what the brief and the
-architecture diagram say. `discount_applied` is a fraction (0–1), not a currency amount. Full
+architecture diagram from qufood doc say. `discount_applied` is a fraction (0–1), not a currency amount. Full
 evidence in `DATA_QUALITY_LOG.md`, Finding #1. `exploration.imputation.formula_total()` already
 implements this correctly — just call it, don't re-derive it.
 
