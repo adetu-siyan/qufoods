@@ -1,0 +1,51 @@
+# Environment / secrets — NEVER commit real credentials
+.env
+*.env
+.aws/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.eggs/
+build/
+dist/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# pytest / coverage
+.pytest_cache/
+.coverage
+htmlcov/
+
+# OS noise
+.DS_Store
+Thumbs.db
+
+# Editors
+.vscode/
+.idea/
+*.swp
+
+# Generated output (exploration/output, streamlit-generated PDFs, etc.)
+exploration/output/*
+!exploration/output/.gitkeep
+streamlit/output/*
+!streamlit/output/.gitkeep
+*.pdf
+!**/sample_*.pdf
+
+# Lambda build artifacts
+lambda/**/*.zip
+lambda/**/package/
+
+# Database dumps
+*.sql.gz
+*.dump
