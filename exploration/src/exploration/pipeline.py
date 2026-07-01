@@ -49,10 +49,6 @@ OUTPUT_DIR = Path(__file__).resolve().parents[3] / "output"
 
 @dataclass
 class PipelineResult:
-    """Everything downstream consumers (the data quality log, handoff doc,
-    or your own analysis) need, gathered in one place.
-    """
-
     raw_record_count: int
     sales_df: pd.DataFrame
     expense_df: pd.DataFrame
@@ -70,35 +66,40 @@ class PipelineResult:
 
 
 def split_record_types(raw_df: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
-    """Separate the mixed batch into sales and expense frames.
-
-    Mirrors the starter notebook's Part 3 — `dropna(axis=1, how='all')` drops
-    columns that are 100% null for that record type (e.g. expense-only
-    columns on the sales frame), so each frame only carries its own schema.
-    """
     sales_df = raw_df[raw_df["record_type"] == "SALE"].dropna(axis=1, how="all").reset_index(drop=True)
     expense_df = raw_df[raw_df["record_type"] == "EXPENSE"].dropna(axis=1, how="all").reset_index(drop=True)
     return sales_df, expense_df
 
 
 def save_outputs(sales_df: pd.DataFrame, expense_df: pd.DataFrame, output_dir: Path = OUTPUT_DIR) -> None:
-    """Save the cleaned sales and expense DataFrames as CSVs to the output directory.
+    """Append cleaned sales and expense records to the output CSVs.
 
     Files are always named:
         output/sales.csv
         output/expenses.csv
 
-    This runs automatically at the end of every `run()` call — no manual
-    export step needed. Bukolami reads directly from these two files.
+    First run creates the files. Every subsequent run appends new rows
+    to the bottom — so one growing file accumulates all cleaned batches
+    over time, rather than creating a new file per batch or overwriting
+    previous data.
+
+    Bukolami reads directly from these two files. Once Emmanuel's Lambda
+    is live, it writes directly to Neon Postgres instead and these CSVs
+    become redundant.
     """
     os.makedirs(output_dir, exist_ok=True)
     sales_path = output_dir / "sales.csv"
     expense_path = output_dir / "expenses.csv"
-    sales_df.to_csv(sales_path, index=False)
-    expense_df.to_csv(expense_path, index=False)
-    print(f"Cleaned data saved to {output_dir}/")
-    print(f"  - sales.csv     ({len(sales_df)} records)")
-    print(f"  - expenses.csv  ({len(expense_df)} records)")
+
+    sales_file_exists = sales_path.exists()
+    expense_file_exists = expense_path.exists()
+
+    sales_df.to_csv(sales_path, mode='a', header=not sales_file_exists, index=False)
+    expense_df.to_csv(expense_path, mode='a', header=not expense_file_exists, index=False)
+
+    print(f"Cleaned data appended to {output_dir}/")
+    print(f"  - sales.csv     (+{len(sales_df)} new records)")
+    print(f"  - expenses.csv  (+{len(expense_df)} new records)")
 
 
 def run(
@@ -110,15 +111,10 @@ def run(
     typo_cutoff: float = TYPO_MATCH_CUTOFF,
     save: bool = True,
 ) -> PipelineResult:
-    """Run the full exploration pipeline once and return a `PipelineResult`.
+    """Run the full exploration pipeline once and return a PipelineResult.
 
-    Set `use_s3=True` once AWS credentials are confirmed — every other
-    argument and every downstream step is unchanged. This is the single
-    switch that takes this from "works on the sample batch" to "works on
-    the live feed."
-
-    Set `save=False` if you want to run the pipeline without writing CSVs
-    to disk — useful for testing or when you only need the in-memory result.
+    Set use_s3=True once AWS credentials are confirmed.
+    Set save=False to run without writing CSVs to disk.
     """
     ingest_result: IngestResult = pull_batches(
         use_s3=use_s3, bucket=bucket, minutes=minutes, profile=profile, sample_dir=sample_dir
@@ -127,7 +123,7 @@ def run(
 
     sales_df, expense_df = split_record_types(raw_df)
 
-    # Branch field repair (digitisation artifact, not a real gap)
+    # Branch field repair
     sales_df = repair_branch_fields(sales_df)
     if "branch_name" in expense_df.columns:
         expense_df = repair_branch_fields(expense_df)
