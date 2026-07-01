@@ -6,7 +6,7 @@ Orchestrates the full exploration flow end to end:
 
     pull -> split sales/expense -> repair branch fields -> fix typos
     -> validate formula -> impute missing totals -> sanity check
-    -> profile -> return everything needed for the data quality log
+    -> profile -> save cleaned CSVs -> return everything needed for the data quality log
 
 This is the one function other team members (and your own notebooks/CI)
 should call to get a fully-cleaned DataFrame without needing to know the
@@ -18,7 +18,9 @@ Lambda logic" is a port, not a redesign.
 
 from __future__ import annotations
 
+import os
 from dataclasses import dataclass, field
+from pathlib import Path
 
 import pandas as pd
 
@@ -40,6 +42,9 @@ from exploration.profiling import (
     plausibility_checks,
 )
 from exploration.reference import load_menu_items
+
+
+OUTPUT_DIR = Path(__file__).resolve().parents[3] / "output"
 
 
 @dataclass
@@ -76,6 +81,26 @@ def split_record_types(raw_df: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame
     return sales_df, expense_df
 
 
+def save_outputs(sales_df: pd.DataFrame, expense_df: pd.DataFrame, output_dir: Path = OUTPUT_DIR) -> None:
+    """Save the cleaned sales and expense DataFrames as CSVs to the output directory.
+
+    Files are always named:
+        output/sales.csv
+        output/expenses.csv
+
+    This runs automatically at the end of every `run()` call — no manual
+    export step needed. Bukolami reads directly from these two files.
+    """
+    os.makedirs(output_dir, exist_ok=True)
+    sales_path = output_dir / "sales.csv"
+    expense_path = output_dir / "expenses.csv"
+    sales_df.to_csv(sales_path, index=False)
+    expense_df.to_csv(expense_path, index=False)
+    print(f"Cleaned data saved to {output_dir}/")
+    print(f"  - sales.csv     ({len(sales_df)} records)")
+    print(f"  - expenses.csv  ({len(expense_df)} records)")
+
+
 def run(
     use_s3: bool = False,
     bucket: str = "qufoods-raw",
@@ -83,6 +108,7 @@ def run(
     profile: str | None = None,
     sample_dir: str = "data/sample_batches",
     typo_cutoff: float = TYPO_MATCH_CUTOFF,
+    save: bool = True,
 ) -> PipelineResult:
     """Run the full exploration pipeline once and return a `PipelineResult`.
 
@@ -90,6 +116,9 @@ def run(
     argument and every downstream step is unchanged. This is the single
     switch that takes this from "works on the sample batch" to "works on
     the live feed."
+
+    Set `save=False` if you want to run the pipeline without writing CSVs
+    to disk — useful for testing or when you only need the in-memory result.
     """
     ingest_result: IngestResult = pull_batches(
         use_s3=use_s3, bucket=bucket, minutes=minutes, profile=profile, sample_dir=sample_dir
@@ -110,8 +139,7 @@ def run(
     sales_df["order_items_typo_fixed"] = cleaned.apply(lambda t: t[1])
     n_typo_corrections = int(sales_df["order_items_typo_fixed"].sum())
 
-    # Formula validation, BEFORE imputation overwrites any nulls — this has
-    # to run on the as-received data so the match rate reflects reality.
+    # Formula validation BEFORE imputation overwrites any nulls
     formula_validation = validate_formula(sales_df)
 
     # Imputation: algebraic first, regression fallback only for what's left
@@ -125,19 +153,21 @@ def run(
     sales_df = sanity_check_imputed(sales_df)
     n_implausible = int(sales_df["imputation_flagged_implausible"].sum())
 
-    # Profiling — runs AFTER cleaning so the profile reflects what actually
-    # ships downstream, but duplicate checks run on transaction_id /
-    # record_id regardless of cleaning state since IDs aren't touched by it.
+    # Profiling
     sales_profile = field_profile(sales_df)
     expense_profile = field_profile(expense_df)
     branch_quality = branch_quality_profile(sales_df, expense_df)
     flagged_comparison = compare_flagged_vs_other(branch_quality)
+    plausibility = plausibility_checks(sales_df)
 
     duplicate_checks = {
         "sales": duplicate_summary(sales_df, "transaction_id"),
         "expense": duplicate_summary(expense_df, "record_id"),
     }
-    plausibility = plausibility_checks(sales_df)
+
+    # Save cleaned CSVs automatically
+    if save:
+        save_outputs(sales_df, expense_df)
 
     return PipelineResult(
         raw_record_count=len(raw_df),
