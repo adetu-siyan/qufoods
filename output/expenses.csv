@@ -1,0 +1,5 @@
+record_id,record_type,batch_id,branch_id,branch_name,ingested_at,expense_category,amount,currency,raised_by,approved_by,paid_by,approval_status,expense_date
+e6ca8e1d-265c-4839-bb7f-1188b21ca0da,EXPENSE,BATCH-96bd24c2-7124-4fb5-93e8-f016bd600d67,BR-02,QuFoods Lekki,2026-06-17T15:45:38Z,STAFF_WELFARE,11184.57,NGN,Blessing Olawale,Chinwe Danjuma,Yusuf Okonkwo,APPROVED,2026-05-30
+abd1e522-b79d-47b4-be49-b5903ac215b2,EXPENSE,BATCH-96bd24c2-7124-4fb5-93e8-f016bd600d67,BR-01,QuFoods Ikeja,2026-06-17T15:45:38Z,STAFF_WELFARE,20743.71,NGN,Funke Adeyemi,Ngozi Olawale,Blessing Balogun,APPROVED,2026-05-18
+d8db3560-dacb-435c-a5f0-64c1399d3b5c,EXPENSE,BATCH-96bd24c2-7124-4fb5-93e8-f016bd600d67,BR-17,QuFoods Aba,2026-06-17T15:45:38Z,REPAIR,2193.03,NGN,Ifeoma Danjuma,Ifeoma Adeyemi,Yusuf Danjuma,APPROVED,2026-05-20
+5767c0b6-2838-4690-b927-fb1da7a84dc5,EXPENSE,BATCH-96bd24c2-7124-4fb5-93e8-f016bd600d67,BR-02,QuFoods Lekki,2026-06-17T15:45:38Z,UTILITIES,40602.35,NGN,Obinna Adebayo,Emeka Balogun,Tunde Eze,APPROVED,2026-06-17
