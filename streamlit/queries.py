@@ -165,3 +165,27 @@ def network_transaction_status(sales):
 def total_expenses_network(expenses):
     # Sum all expenses across every branch
     return expenses["amount"].sum()
+
+
+
+
+#Dwell Time for the app
+def avg_dwell_time(sales):
+    # Calculate dwell time in minutes for each transaction
+    # Departure minus arrival gives us the time spent in the branch
+    sales = sales.copy()
+    sales["arrival"] = pd.to_datetime(sales["customer_arrival_time"])
+    sales["departure"] = pd.to_datetime(sales["customer_departure_time"])
+    sales["dwell_minutes"] = (
+        sales["departure"] - sales["arrival"]
+    ).dt.total_seconds() / 60
+
+    # Filter out negative dwell times — these are data entry errors
+    # where departure was recorded before arrival. Including them
+    # would pull the average down artificially.
+    valid = sales[sales["dwell_minutes"] > 0]
+
+    if len(valid) == 0:
+        return 0
+
+    return round(valid["dwell_minutes"].mean(), 1)

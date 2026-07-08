@@ -26,13 +26,14 @@ def _base_styles():
         name="ReportTitle",
         fontSize=24,
         textColor=DARK_TEXT,
-        spaceAfter=14,
+        spaceAfter=20,
         fontName="Helvetica-Bold"
     ))
     styles.add(ParagraphStyle(
         name="ReportSubtitle",
         fontSize=10,
         textColor=MUTED_TEXT,
+        spaceBefore=8,
         spaceAfter=16,
         fontName="Helvetica"
     ))
@@ -48,6 +49,7 @@ def _base_styles():
         name="BodyText2",
         fontSize=10,
         textColor=DARK_TEXT,
+        spaceBefore=8,
         spaceAfter=14,
         fontName="Helvetica"
     ))
@@ -211,6 +213,7 @@ def generate_branch_pdf(sales, expenses):
     )
     buffer.seek(0)
     return buffer.read()
+
 
 
 def generate_regional_pdf(sales, expenses):
