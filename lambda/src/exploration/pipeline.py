@@ -17,6 +17,7 @@ Lambda logic" is a port, not a redesign.
 """
 
 from __future__ import annotations
+from botocore.exceptions import ClientError
 
 import os
 from dataclasses import dataclass, field
@@ -100,6 +101,38 @@ def save_outputs(sales_df: pd.DataFrame, expense_df: pd.DataFrame, output_dir: P
     print(f"Cleaned data appended to {output_dir}/")
     print(f"  - sales.csv     (+{len(sales_df)} new records)")
     print(f"  - expenses.csv  (+{len(expense_df)} new records)")
+
+
+# def upload_cleaned_data(cleaned_data: dict, object_key: str) -> bool:
+#     """
+#     Upload cleaned JSON data to the processed S3 bucket.
+#
+#     Args:
+#         cleaned_data: The cleaned JSON data as a Python dictionary.
+#         object_key: The destination object key in the bucket.
+#                    Example:
+#                    year=2026/month=06/day=17/cleaned_BATCH-123.json
+#
+#     Returns:
+#         True if upload succeeds, False otherwise.
+#     """
+#     from . import s3
+#
+    # PROCESSED_BUCKET = os.environ["PROCESSED_BUCKET"]
+#     try:
+#         s3.put_object(
+#             Bucket=PROCESSED_BUCKET,
+#             Key=object_key,
+#             Body=json.dumps(cleaned_data, indent=2),
+#             ContentType="application/json"
+#         )
+#
+#         print(f"Successfully uploaded {object_key} to {PROCESSED_BUCKET}")
+#         return True
+#
+#     except ClientError as e:
+#         print(f"S3 Upload Error: {e}")
+#         return False
 
 
 def run(

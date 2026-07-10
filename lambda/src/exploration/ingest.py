@@ -42,8 +42,6 @@ from typing import Iterable
 from dotenv import load_dotenv
 import pandas as pd
 import requests
-import boto3
-import os
 
 logger = logging.getLogger(__name__)
 load_dotenv()
@@ -174,65 +172,32 @@ def pull_from_local(sample_dir: str | Path) -> IngestResult:
     here — same `{"batch_id", "ingested_at", "records": [...]}` shape — and
     every downstream profiling step scales with zero code changes.
     """
-    BUCKET_NAME = "qufoods-raw"
+    from . import s3
 
-    # Date you want (UTC)
+    BUCKET_NAME = "qufoods-raw"
     TARGET_TIME = datetime(2026, 6, 17, 15, 51, tzinfo=timezone.utc)
 
-    # DOWNLOAD_DIR = "downloads"
-    # os.makedirs(DOWNLOAD_DIR, exist_ok=True)
-
-    # Anonymous S3 client
-    s3 = boto3.client(
-        "s3",
-        aws_access_key_id=os.getenv("AWS_ACCESS_KEY"),
-        aws_secret_access_key=os.getenv("AWS_SECRET_KEY")
-    )
-
     paginator = s3.get_paginator("list_objects_v2")
-    # print(paginator)
 
     for page in paginator.paginate(Bucket=BUCKET_NAME):
-        # # Convert using .isoformat() for standard JSON formatting
-        # json_string = json.dumps(page, default=lambda o: o.isoformat(), indent=4)
-        #
-        # print(json_string)
         if "Contents" not in page:
             print("No Contents")
             continue
-        # print(page)
 
         records: list[dict] = []
         paths: list[str] = []
         for obj in page["Contents"]:
             if obj["LastModified"] >= TARGET_TIME:
-                # print(obj["LastModified"], TARGET_TIME)
                 key = obj["Key"]
-                # filename = os.path.join(DOWNLOAD_DIR, os.path.basename(key))
-
-                # print(f"Downloading {key}")
                 paths.append("https://qufoods-raw.s3.amazonaws.com/"+key)
                 response = s3.get_object(Bucket=BUCKET_NAME, Key=key)
-                # print(response)
                 response_file = json.loads(response["Body"].read().decode("utf-8"))
                 records.extend(response_file.get("records", []))
-    # sample_dir = Path(sample_dir)
-    # paths = sorted(sample_dir.glob("*.json"))
-    # if not paths:
-    #     raise FileNotFoundError(
-    #         f"No .json batch files found in {sample_dir}. "
-    #         "Add at least one batch file matching the qufoods-raw format."
-    #     )
-    #
-    # records: list[dict] = []
-    # for path in paths:
-    #     batch = json.loads(path.read_text())
-    #     records.extend(batch.get("records", []))
 
-    logger.info("loaded %d record(s) from %d local batch file(s)", len(records), len(paths))
+    logger.info("loaded %d record(s) from %d S3 batch file(s)", len(records), len(paths))
     return IngestResult(
         records=records,
-        source_keys=[str(p) for p in paths],
+        source_keys=paths, #[str(p) for p in paths],
         pulled_at=datetime.now(timezone.utc),
     )
 
