@@ -195,6 +195,7 @@ def pull_from_local(sample_dir: str | Path) -> IngestResult:
                 records.extend(response_file.get("records", []))
 
     logger.info("loaded %d record(s) from %d S3 batch file(s)", len(records), len(paths))
+    print(paths)
     return IngestResult(
         records=records,
         source_keys=paths, #[str(p) for p in paths],

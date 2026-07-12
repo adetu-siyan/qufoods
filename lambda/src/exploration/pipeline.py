@@ -72,67 +72,76 @@ def split_record_types(raw_df: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame
     return sales_df, expense_df
 
 
-def save_outputs(sales_df: pd.DataFrame, expense_df: pd.DataFrame, output_dir: Path = OUTPUT_DIR) -> None:
-    """Append cleaned sales and expense records to the output CSVs.
+# def save_outputs(sales_df: pd.DataFrame, expense_df: pd.DataFrame, output_dir: Path = OUTPUT_DIR) -> None:
+#     """Append cleaned sales and expense records to the output CSVs.
+#
+#     Files are always named:
+#         output/sales.csv
+#         output/expenses.csv
+#
+#     First run creates the files. Every subsequent run appends new rows
+#     to the bottom — so one growing file accumulates all cleaned batches
+#     over time, rather than creating a new file per batch or overwriting
+#     previous data.
+#
+#     Bukolami reads directly from these two files. Once Emmanuel's Lambda
+#     is live, it writes directly to Neon Postgres instead and these CSVs
+#     become redundant.
+#     """
+#     os.makedirs(output_dir, exist_ok=True)
+#     sales_path = output_dir / "sales.csv"
+#     expense_path = output_dir / "expenses.csv"
+#
+#     sales_file_exists = sales_path.exists()
+#     expense_file_exists = expense_path.exists()
+#
+#     sales_df.to_csv(sales_path, mode='a', header=not sales_file_exists, index=False)
+#     expense_df.to_csv(expense_path, mode='a', header=not expense_file_exists, index=False)
+#
+#     print(f"Cleaned data appended to {output_dir}/")
+#     print(f"  - sales.csv     (+{len(sales_df)} new records)")
+#     print(f"  - expenses.csv  (+{len(expense_df)} new records)")
 
-    Files are always named:
-        output/sales.csv
-        output/expenses.csv
 
-    First run creates the files. Every subsequent run appends new rows
-    to the bottom — so one growing file accumulates all cleaned batches
-    over time, rather than creating a new file per batch or overwriting
-    previous data.
-
-    Bukolami reads directly from these two files. Once Emmanuel's Lambda
-    is live, it writes directly to Neon Postgres instead and these CSVs
-    become redundant.
+def upload_cleaned_data(sales_df: pd.DataFrame, expense_df: pd.DataFrame, object_keys: list[str]) -> bool:
     """
-    os.makedirs(output_dir, exist_ok=True)
-    sales_path = output_dir / "sales.csv"
-    expense_path = output_dir / "expenses.csv"
+    Upload cleaned JSON data to the processed S3 bucket.
 
-    sales_file_exists = sales_path.exists()
-    expense_file_exists = expense_path.exists()
+    Args:
+        cleaned_data: The cleaned JSON data as a Python dictionary.
+        object_key: The destination object key in the bucket.
+                   Example:
+                   year=2026/month=06/day=17/cleaned_BATCH-123.json
 
-    sales_df.to_csv(sales_path, mode='a', header=not sales_file_exists, index=False)
-    expense_df.to_csv(expense_path, mode='a', header=not expense_file_exists, index=False)
+    Returns:
+        True if upload succeeds, False otherwise.
+    """
+    from . import s3
 
-    print(f"Cleaned data appended to {output_dir}/")
-    print(f"  - sales.csv     (+{len(sales_df)} new records)")
-    print(f"  - expenses.csv  (+{len(expense_df)} new records)")
+    id = [int(i.split("_")[-1].replace("Z.json", "").split("T")[-1]) for i in object_keys]
+    id.sort()
+    object_key = f"{id[0]} --- {id[-1]}"
+    PROCESSED_BUCKET = os.environ["PROCESSED_BUCKET"]
+    try:
+        s3.put_object(
+            Bucket=PROCESSED_BUCKET,
+            Key="Sales: " + object_key,
+            Body=sales_df.to_json(orient="records", indent=2),
+            ContentType="application/json"
+        )
 
+        s3.put_object(
+            Bucket=PROCESSED_BUCKET,
+            Key="Expense: " + object_key,
+            Body=expense_df.to_json(orient="records", indent=2),
+            ContentType="application/json"
+        )
+        print(f"Successfully uploaded {object_key} to {PROCESSED_BUCKET}")
+        return True
 
-# def upload_cleaned_data(cleaned_data: dict, object_key: str) -> bool:
-#     """
-#     Upload cleaned JSON data to the processed S3 bucket.
-#
-#     Args:
-#         cleaned_data: The cleaned JSON data as a Python dictionary.
-#         object_key: The destination object key in the bucket.
-#                    Example:
-#                    year=2026/month=06/day=17/cleaned_BATCH-123.json
-#
-#     Returns:
-#         True if upload succeeds, False otherwise.
-#     """
-#     from . import s3
-#
-    # PROCESSED_BUCKET = os.environ["PROCESSED_BUCKET"]
-#     try:
-#         s3.put_object(
-#             Bucket=PROCESSED_BUCKET,
-#             Key=object_key,
-#             Body=json.dumps(cleaned_data, indent=2),
-#             ContentType="application/json"
-#         )
-#
-#         print(f"Successfully uploaded {object_key} to {PROCESSED_BUCKET}")
-#         return True
-#
-#     except ClientError as e:
-#         print(f"S3 Upload Error: {e}")
-#         return False
+    except ClientError as e:
+        print(f"S3 Upload Error: {e}")
+        return False
 
 
 def run(
@@ -196,7 +205,8 @@ def run(
 
     # Save cleaned CSVs automatically
     if save:
-        save_outputs(sales_df, expense_df)
+        # save_outputs(sales_df, expense_df)
+        upload_cleaned_data(sales_df, expense_df, ingest_result.source_keys)
 
     return PipelineResult(
         raw_record_count=len(raw_df),
