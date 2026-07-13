@@ -51,6 +51,11 @@ def payment_method_split(sales):
     return sales["payment_method"].value_counts()
 
 
+
+
+    # TEMPORARY — parses order_items string directly from S3 data
+    # Replace with get_top_items() version on Day 7 DB swap
+    # See db.py get_top_items() for the live database version
 def top_ordered_items(sales, top_n=8):
     # Step 1: Use the typo-corrected column if it exists, otherwise use the original
     # This means the chart works whether or not the cleaning step has run
@@ -189,3 +194,48 @@ def avg_dwell_time(sales):
         return 0
 
     return round(valid["dwell_minutes"].mean(), 1)
+
+
+# After Bukolami normalizes — uses region column from branches table
+def revenue_by_region(sales):
+    # Uses the region column Bukolami populates during ETL
+    # No need to derive Lagos/West/Other manually
+    completed = sales[
+        (sales["transaction_status"] == "COMPLETED") &
+        (sales["total_amount"].notna())
+    ]
+    return (
+        completed.groupby("region")["total_amount"]
+        .sum()
+        .sort_values(ascending=False)
+        .reset_index()
+    )
+
+
+def imputation_summary(sales):
+    total = len(sales)
+    if total == 0:
+        return {"imputed_count": 0, "imputed_pct": 0, "methods": {}}
+
+    # Column only exists in live DB — not in S3 stub data
+    # Returns zeros safely until DB swap is done
+    if "total_amount_imputed" not in sales.columns:
+        return {"imputed_count": 0, "imputed_pct": 0, "methods": {}}
+
+    imputed = sales[sales["total_amount_imputed"] == True]
+    imputed_count = len(imputed)
+    imputed_pct = round(imputed_count / total * 100, 1)
+
+    methods = {}
+    if imputed_count > 0:
+        methods = imputed["imputation_method"].value_counts().to_dict()
+
+    return {
+        "imputed_count": imputed_count,
+        "imputed_pct": imputed_pct,
+        "methods": methods
+    }
+    # Shows what percentage of revenue figures were imputed
+    # rather than directly recorded — a reporting confidence signal
+    # Fields preserved by Bukolami's ETL from the exploration pipeline
+    

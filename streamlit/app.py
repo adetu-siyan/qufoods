@@ -2,7 +2,7 @@ import streamlit as st
 import plotly.express as px
 from pdf import generate_branch_pdf, generate_regional_pdf, generate_operations_pdf
 from queries import (
-    get_sales, get_expenses, revenue_by_branch,
+    get_sales, get_expenses, imputation_summary, revenue_by_branch,
     total_revenue, average_order_value, failed_transaction_count,
     payment_method_split, top_ordered_items,
     regional_revenue, revenue_vs_expenses, membership_penetration, top_and_bottom_branch,
@@ -107,14 +107,28 @@ if report_type == "Branch Report":
         )
         st.plotly_chart(fig3, use_container_width=True)
 
-        st.markdown("---")
-        pdf_bytes = generate_branch_pdf(sales, expenses)
-        st.download_button(
-            label="Download Branch Report PDF",
-            data=pdf_bytes,
-            file_name="qufoods_branch_report.pdf",
-            mime="application/pdf"
+    st.markdown("---")
+
+    imp = imputation_summary(sales)
+    if imp["imputed_count"] > 0:
+        st.warning(
+            f"{imp['imputed_pct']}% of revenue figures in this batch "
+            f"({imp['imputed_count']} records) were estimated rather than "
+            f"directly recorded. Breakdown by method: "
+            f"{imp['methods']}"
+        )
+
+    st.markdown("---")
+    pdf_bytes = generate_branch_pdf(sales, expenses)
+    st.download_button(
+        label="Download Branch Report PDF",
+        data=pdf_bytes,
+        file_name="qufoods_branch_report.pdf",
+        mime="application/pdf"
     )
+
+
+   #REGIONAL REPORT 
 
 elif report_type == "Regional Report":
     st.title("Regional Comparison Report")
@@ -130,6 +144,7 @@ elif report_type == "Regional Report":
     col2.metric("Branches Active", total_branches)
     col3.metric("Top Performer", top_branch)
     col4.metric("Lowest Performer", bottom_branch)
+    
 
     st.markdown("---")
 
