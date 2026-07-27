@@ -47,7 +47,6 @@ jobs:
 
           zip -r ../lambda.zip .
 build/
-
     lambda.zip
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
