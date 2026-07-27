@@ -46,8 +46,8 @@ jobs:
           cd build/package
 
           zip -r ../lambda.zip .
-build/
-    lambda.zip
+          #build/
+          #    lambda.zip
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
       - name: Terraform Init
