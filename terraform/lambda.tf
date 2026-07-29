@@ -42,8 +42,6 @@ resource "aws_lambda_function" "processor" {
 
   depends_on = [
 
-    aws_cloudwatch_log_group.lambda,
-
     aws_iam_role_policy_attachment.lambda_attachment
 
   ]
