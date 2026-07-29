@@ -1,12 +1,3 @@
-resource "aws_cloudwatch_log_group" "lambda" {
-  name              = "/aws/lambda/${var.lambda_function_name}"
-  retention_in_days = 14
-
-  tags = {
-    ManagedBy = "Terraform"
-    Project   = "Qufoods Data Pipeline"
-  }
-}
 resource "aws_lambda_function" "processor" {
 
   function_name = var.lambda_function_name
