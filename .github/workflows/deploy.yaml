@@ -50,6 +50,11 @@ jobs:
           #    lambda.zip
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
+      - name: Terraform Init
+
+        working-directory: terraform
+
+        run: terraform init
       - name: Import IAM Role
         working-directory: terraform
         run: |
@@ -61,11 +66,6 @@ jobs:
         run: |
           terraform state show aws_iam_policy.lambda_policy >/dev/null 2>&1 || \
           terraform import aws_iam_policy.lambda_policy arn:aws:iam::992382810653:policy/qufoods-data-processor-policy
-      - name: Terraform Init
-
-        working-directory: terraform
-
-        run: terraform init
       - name: Terraform Validate
 
         working-directory: terraform
