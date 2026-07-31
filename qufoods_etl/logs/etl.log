@@ -1,0 +1,69 @@
+2026-07-01 10:07:12,527 | INFO | Connected to Neon successfully.
+2026-07-02 11:25:57,598 | INFO | ============================================================
+2026-07-02 11:25:57,598 | INFO | Starting ETL Pipeline
+2026-07-02 11:25:57,598 | INFO | ============================================================
+2026-07-02 11:25:58,083 | ERROR | Pipeline failed.
+Traceback (most recent call last):
+  File "C:\Users\HP\Downloads\minee!!!(IT)\qufoods\qufoods\qufoods_etl\etl_pipeline.py", line 163, in run_pipeline
+    ) = read_csv_files()
+        ~~~~~~~~~~~~~~^^
+  File "C:\Users\HP\Downloads\minee!!!(IT)\qufoods\qufoods\qufoods_etl\etl_pipeline.py", line 44, in read_csv_files
+    branches_df = pd.read_csv("data/reference/reference_branches.csv")
+  File "C:\Users\HP\Downloads\minee!!!(IT)\qufoods\qufoods\.venv\Lib\site-packages\pandas\io\parsers\readers.py", line 873, in read_csv
+    return _read(filepath_or_buffer, kwds)
+  File "C:\Users\HP\Downloads\minee!!!(IT)\qufoods\qufoods\.venv\Lib\site-packages\pandas\io\parsers\readers.py", line 300, in _read
+    parser = TextFileReader(filepath_or_buffer, **kwds)
+  File "C:\Users\HP\Downloads\minee!!!(IT)\qufoods\qufoods\.venv\Lib\site-packages\pandas\io\parsers\readers.py", line 1645, in __init__
+    self._engine = self._make_engine(f, self.engine)
+                   ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "C:\Users\HP\Downloads\minee!!!(IT)\qufoods\qufoods\.venv\Lib\site-packages\pandas\io\parsers\readers.py", line 1904, in _make_engine
+    self.handles = get_handle(
+                   ~~~~~~~~~~^
+        f,
+        ^^
+    ...<6 lines>...
+        storage_options=self.options.get("storage_options", None),
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\HP\Downloads\minee!!!(IT)\qufoods\qufoods\.venv\Lib\site-packages\pandas\io\common.py", line 930, in get_handle
+    handle = open(
+        handle,
+    ...<3 lines>...
+        newline="",
+    )
+FileNotFoundError: [Errno 2] No such file or directory: 'data/reference/reference_branches.csv'
+2026-07-02 11:49:18,500 | INFO | ============================================================
+2026-07-02 11:49:18,501 | INFO | Starting ETL Pipeline
+2026-07-02 11:49:18,501 | INFO | ============================================================
+2026-07-02 11:49:18,653 | ERROR | Pipeline failed.
+Traceback (most recent call last):
+  File "C:\Users\HP\Downloads\minee!!!(IT)\qufoods\qufoods\qufoods_etl\etl_pipeline.py", line 163, in run_pipeline
+    ) = read_csv_files()
+        ~~~~~~~~~~~~~~^^
+  File "C:\Users\HP\Downloads\minee!!!(IT)\qufoods\qufoods\qufoods_etl\etl_pipeline.py", line 44, in read_csv_files
+    branches_df = pd.read_csv("exploration/data/reference/reference_branches.csv")
+  File "C:\Users\HP\Downloads\minee!!!(IT)\qufoods\qufoods\.venv\Lib\site-packages\pandas\io\parsers\readers.py", line 873, in read_csv
+    return _read(filepath_or_buffer, kwds)
+  File "C:\Users\HP\Downloads\minee!!!(IT)\qufoods\qufoods\.venv\Lib\site-packages\pandas\io\parsers\readers.py", line 300, in _read
+    parser = TextFileReader(filepath_or_buffer, **kwds)
+  File "C:\Users\HP\Downloads\minee!!!(IT)\qufoods\qufoods\.venv\Lib\site-packages\pandas\io\parsers\readers.py", line 1645, in __init__
+    self._engine = self._make_engine(f, self.engine)
+                   ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "C:\Users\HP\Downloads\minee!!!(IT)\qufoods\qufoods\.venv\Lib\site-packages\pandas\io\parsers\readers.py", line 1904, in _make_engine
+    self.handles = get_handle(
+                   ~~~~~~~~~~^
+        f,
+        ^^
+    ...<6 lines>...
+        storage_options=self.options.get("storage_options", None),
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\HP\Downloads\minee!!!(IT)\qufoods\qufoods\.venv\Lib\site-packages\pandas\io\common.py", line 930, in get_handle
+    handle = open(
+        handle,
+    ...<3 lines>...
+        newline="",
+    )
+FileNotFoundError: [Errno 2] No such file or directory: 'exploration/data/reference/reference_branches.csv'
