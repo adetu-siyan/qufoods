@@ -33,24 +33,24 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
-      - name: Login to Amazon ECR
-        id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v2
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-      - name: Build and push image
-        uses: docker/build-push-action@v6
-        with:
-          context: ./lambda
-          push: true
-          tags: |
-            ${{ steps.login-ecr.outputs.registry }}/qufoods-data-processor:${{ github.sha }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-
-      - name: Set image URI
-        run: |
-          echo "IMAGE_URI=${{ steps.login-ecr.outputs.registry }}/qufoods-data-processor:${{ github.sha }}" >> $GITHUB_ENV
+#      - name: Login to Amazon ECR
+#        id: login-ecr
+#        uses: aws-actions/amazon-ecr-login@v2
+#      - name: Set up Docker Buildx
+#        uses: docker/setup-buildx-action@v3
+#      - name: Build and push image
+#        uses: docker/build-push-action@v6
+#        with:
+#          context: ./lambda
+#          push: true
+#          tags: |
+#            ${{ steps.login-ecr.outputs.registry }}/qufoods-data-processor:${{ github.sha }}
+#          cache-from: type=gha
+#          cache-to: type=gha,mode=max
+#
+#      - name: Set image URI
+#        run: |
+#          echo "IMAGE_URI=${{ steps.login-ecr.outputs.registry }}/qufoods-data-processor:${{ github.sha }}" >> $GITHUB_ENV
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
       - name: Terraform Init
@@ -86,3 +86,10 @@ jobs:
 
 #        run: terraform apply -auto-approve
         run: terraform plan -var="lambda_image_uri=$IMAGE_URI"
+      - name: Check ECR repositories
+        run: |
+          aws ecr describe-repositories
+      - name: Terraform State
+        working-directory: terraform
+        run: |
+          terraform state list
