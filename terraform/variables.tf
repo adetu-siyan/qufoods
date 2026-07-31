@@ -37,7 +37,7 @@ variable "lambda_zip_path" {
 }
 
 variable "lambda_image_uri" {
-  description = ${{ steps.login-ecr.outputs.registry }}/qufoods-data-processor:${{ github.sha }}
+  description = "Full ECR image URI for the Lambda container"
   type        = string
 }
 
