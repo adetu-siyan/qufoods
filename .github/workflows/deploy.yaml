@@ -85,7 +85,7 @@ jobs:
         working-directory: terraform
 
 #        run: terraform apply -auto-approve
-        run: terraform plan -var="lambda_image_uri=$IMAGE_URI"
+        run: terraform apply -auto-approve -var="lambda_image_uri=$IMAGE_URI"
       - name: Check ECR repositories
         run: |
           aws ecr describe-repositories
