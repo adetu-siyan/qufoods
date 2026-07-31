@@ -9,11 +9,23 @@ from queries import (
     top_5_branches, bottom_5_branches, network_transaction_status, total_expenses_network
 )
 # Page config — sets the browser tab title and layout
-st.set_page_config(page_title="QuFoods Dashboard", layout="wide")
+st.set_page_config(
+    page_title="QuFoods Dashboard",
+    page_icon="🍔",
+    layout="wide"
+)
 
 # Sidebar
-st.sidebar.image("https://via.placeholder.com/150x50?text=QuFoods", width=150)
-st.sidebar.title("QuFoods Reports")
+# st.sidebar.markdown("""
+#     <div style="font-size:24px; font-weight:700; color:#39FF14; margin-bottom:4px;">
+#         Qu<span style="color:#ffffff;">Fo🍔ds</span>
+#     </div>
+#     <div style="font-size:10px; color:#aaa; margin-bottom:16px;">
+#         Data Intelligence Platform
+#     </div>
+# """, unsafe_allow_html=True)
+st.sidebar.image("Q-removebg-preview (1).png", width=180)
+st.sidebar.title(" REPORTS")
 st.sidebar.markdown("---")
 
 report_type = st.sidebar.selectbox(
@@ -38,11 +50,29 @@ if report_type == "Branch Report":
     aov = average_order_value(sales)
     failed = failed_transaction_count(sales)
 
+# Revenue and Income text and color tone
     col1, col2, col3, col4 = st.columns(4)
-    col1.metric("Total Revenue", f"₦{rev_total:,.0f}")
+
+    # Total Revenue — neon green
+    col1.markdown(f"""
+        <div style="font-size:14px; color:#aaa;">Total Revenue</div>
+        <div style="font-size:28px; font-weight:600; color:#39FF14;">₦{rev_total:,.0f}</div>
+    """, unsafe_allow_html=True)
+
+    # Transactions — plain white
     col2.metric("Transactions", txn_count)
-    col3.metric("Avg Order Value", f"₦{aov:,.0f}")
-    col4.metric("Failed Transactions", failed)
+
+    # Avg Order Value — neon green
+    col3.markdown(f"""
+        <div style="font-size:14px; color:#aaa;">Avg Order Value</div>
+        <div style="font-size:28px; font-weight:600; color:#39FF14;">₦{aov:,.0f}</div>
+    """, unsafe_allow_html=True)
+
+    # Failed Transactions — red
+    col4.markdown(f"""
+        <div style="font-size:14px; color:#aaa;">Failed Transactions</div>
+        <div style="font-size:28px; font-weight:600; color:#FF3131;">{failed}</div>
+    """, unsafe_allow_html=True)
 
     st.markdown("---")
 
@@ -139,11 +169,30 @@ elif report_type == "Regional Report":
     top_branch, bottom_branch = top_and_bottom_branch(sales)
     total_branches = sales["branch_name"].nunique()
 
+
+#the color codin the top income and loss
     col1, col2, col3, col4 = st.columns(4)
-    col1.metric("Total Revenue", f"₦{reg_rev:,.0f}")
+
+    # Total Revenue — green
+    col1.markdown(f"""
+        <div style="font-size:14px; color:#aaa;">Total Revenue</div>
+        <div style="font-size:28px; font-weight:600; color:#39FF14;">₦{reg_rev:,.0f}</div>
+    """, unsafe_allow_html=True)
+
+    # Branches Active — plain
     col2.metric("Branches Active", total_branches)
-    col3.metric("Top Performer", top_branch)
-    col4.metric("Lowest Performer", bottom_branch)
+
+    # Top Performer — green
+    col3.markdown(f"""
+        <div style="font-size:14px; color:#aaa;">Top Performer</div>
+        <div style="font-size:22px; font-weight:600; color:#39FF14;">{top_branch}</div>
+    """, unsafe_allow_html=True)
+
+    # Lowest Performer — red
+    col4.markdown(f"""
+        <div style="font-size:14px; color:#aaa;">Lowest Performer</div>
+        <div style="font-size:22px; font-weight:600; color:#FF3131;">{bottom_branch}</div>
+    """, unsafe_allow_html=True)
     
 
     st.markdown("---")
