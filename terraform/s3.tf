@@ -9,12 +9,6 @@ resource "aws_s3_bucket" "processed" {
   }
 }
 
-resource "aws_s3_object" "lambda_zip" {
-  bucket = aws_s3_bucket.lambda_code.id
-  key    = "lambda.zip"
-  source = "../build/lambda.zip"
-}
-
 resource "aws_s3_bucket_versioning" "processed" {
   bucket = aws_s3_bucket.processed.id
 
