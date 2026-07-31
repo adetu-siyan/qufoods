@@ -8,14 +8,6 @@ resource "aws_lambda_function" "processor" {
 
   image_uri = var.lambda_image_uri #"${aws_ecr_repository.lambda.repository_url}:latest"
 
-#   runtime = var.lambda_runtime
-#
-#   handler = var.lambda_handler
-#
-#   filename = var.lambda_zip_path
-#
-#   source_code_hash = filebase64sha256(var.lambda_zip_path)
-
   timeout = 300
 
   memory_size = 2048
