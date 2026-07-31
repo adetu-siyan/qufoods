@@ -43,7 +43,7 @@ from exploration.profiling import (
     plausibility_checks,
 )
 from exploration.reference import load_menu_items
-
+from sql_storage.etl_pipeline import run_pipeline
 
 OUTPUT_DIR = Path(__file__).resolve().parents[3] / "output"
 
@@ -207,6 +207,7 @@ def run(
     if save:
         # save_outputs(sales_df, expense_df)
         upload_cleaned_data(sales_df, expense_df, ingest_result.source_keys)
+        run_pipeline(sales_df, expense_df)
 
     return PipelineResult(
         raw_record_count=len(raw_df),
