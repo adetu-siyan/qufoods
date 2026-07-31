@@ -7,9 +7,9 @@ on:
 
   workflow_dispatch:
 env:
-  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-  AWS_DEFAULT_REGION: ${{ secrets.AWS_REGION }}
+  AWS_ACCESS_KEY_ID: ${{ aws-access-key-id }}
+  AWS_SECRET_ACCESS_KEY: ${{ aws-secret-access-key }}
+  AWS_DEFAULT_REGION: ${{ aws-region }}
 
   TF_VAR_processed_bucket_name: ${{ secrets.PROCESSED_BUCKET_NAME }}
   TF_VAR_db_host: ${{ secrets.DB_HOST }}
@@ -26,28 +26,30 @@ jobs:
 
       - name: Checkout Repository
         uses: actions/checkout@v4
-      - name: Setup Python
-        uses: actions/setup-python@v5
-
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
         with:
-          python-version: "3.12"
-      - name: Build Lambda Package
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Build and push image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./lambda
+          push: true
+          tags: |
+            ${{ steps.login-ecr.outputs.registry }}/qufoods-data-processor:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
+      - name: Set image URI
         run: |
-
-          mkdir -p build/package
-
-          pip install \
-            -r lambda/requirements-lambda.txt \
-            -t build/package
-
-          cp -r lambda/* build/package/
-
-          cd build/package
-
-          zip -r ../lambda.zip .
-          #build/
-          #    lambda.zip
+          echo "IMAGE_URI=${{ steps.login-ecr.outputs.registry }}/qufoods-data-processor:${{ github.sha }}" >> $GITHUB_ENV
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
       - name: Terraform Init
@@ -75,9 +77,11 @@ jobs:
 
         working-directory: terraform
 
-        run: terraform plan
+#        run: terraform plan
+        run: terraform plan -var="lambda_image_uri=$IMAGE_URI"
       - name: Terraform Apply
 
         working-directory: terraform
 
-        run: terraform apply -auto-approve
+#        run: terraform apply -auto-approve
+        run: terraform plan -var="lambda_image_uri=$IMAGE_URI"

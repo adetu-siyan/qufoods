@@ -7,9 +7,9 @@ terraform {
       version = "~> 5.50"
     }
 
-    archive = {
-      source  = "hashicorp/archive"
-      version = "~> 2.5"
-    }
+#     archive = {
+#       source  = "hashicorp/archive"
+#       version = "~> 2.5"
+#     }
   }
 }

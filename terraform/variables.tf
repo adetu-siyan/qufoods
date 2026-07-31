@@ -36,6 +36,11 @@ variable "lambda_zip_path" {
   default     = "../build/lambda.zip"
 }
 
+variable "lambda_image_uri" {
+  description = ${{ steps.login-ecr.outputs.registry }}/qufoods-data-processor:${{ github.sha }}
+  type        = string
+}
+
 variable "db_host" {
   type = string
 }

@@ -4,13 +4,17 @@ resource "aws_lambda_function" "processor" {
 
   role = aws_iam_role.lambda_role.arn
 
-  runtime = var.lambda_runtime
+  package_type = "Image"
 
-  handler = var.lambda_handler
+  image_uri = var.lambda_image_uri #"${aws_ecr_repository.lambda.repository_url}:latest"
 
-  filename = var.lambda_zip_path
-
-  source_code_hash = filebase64sha256(var.lambda_zip_path)
+#   runtime = var.lambda_runtime
+#
+#   handler = var.lambda_handler
+#
+#   filename = var.lambda_zip_path
+#
+#   source_code_hash = filebase64sha256(var.lambda_zip_path)
 
   timeout = 300
 
