@@ -50,6 +50,7 @@ jobs:
       - name: Set image URI
         run: |
           echo "IMAGE_URI=${{ steps.login-ecr.outputs.registry }}/qufoods-data-processor:${{ github.sha }}" >> $GITHUB_ENV
+
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
       - name: Terraform Init
@@ -73,6 +74,12 @@ jobs:
         run: |
           terraform state show aws_ecr_repository.lambda >/dev/null 2>&1 || \
           terraform import aws_ecr_repository.lambda qufoods-data-processor
+      - name: Import Lambda Function
+        working-directory: terraform
+        run: |
+          terraform state show aws_lambda_function.processor >/dev/null 2>&1 || \
+          terraform import aws_lambda_function.processor qufoods-data-processor
+
       - name: Terraform Validate
 
         working-directory: terraform
@@ -97,3 +104,6 @@ jobs:
         working-directory: terraform
         run: |
           terraform state list
+      - name: Terreaform get s3
+        working-directory: terraform
+        run: terraform state show aws_s3_bucket.processed
