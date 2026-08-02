@@ -58,28 +58,6 @@ jobs:
         working-directory: terraform
 
         run: terraform init
-      - name: Import IAM Role
-        working-directory: terraform
-        run: |
-          terraform state show aws_iam_role.lambda_role >/dev/null 2>&1 || \
-          terraform import aws_iam_role.lambda_role qufoods-data-processor-role
-
-      - name: Import IAM Policy
-        working-directory: terraform
-        run: |
-          terraform state show aws_iam_policy.lambda_policy >/dev/null 2>&1 || \
-          terraform import aws_iam_policy.lambda_policy arn:aws:iam::992382810653:policy/qufoods-data-processor-policy
-      - name: Import ECR Repository
-        working-directory: terraform
-        run: |
-          terraform state show aws_ecr_repository.lambda >/dev/null 2>&1 || \
-          terraform import aws_ecr_repository.lambda qufoods-data-processor
-      - name: Import Lambda Function
-        working-directory: terraform
-        run: |
-          terraform state show aws_lambda_function.processor >/dev/null 2>&1 || \
-          terraform import aws_lambda_function.processor qufoods-data-processor
-
       - name: Terraform Validate
 
         working-directory: terraform
@@ -104,6 +82,3 @@ jobs:
         working-directory: terraform
         run: |
           terraform state list
-      - name: Terreaform get s3
-        working-directory: terraform
-        run: terraform state show aws_s3_bucket.processed
