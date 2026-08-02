@@ -66,8 +66,7 @@ CREATE TABLE sales (
         CHECK (payment_method IN ('CASH','POS','TRANSFER')),
 
     transaction_status VARCHAR(20) NOT NULL
-        CHECK (transaction_status IN ('COMPLETED','FAILED')),
-
+    
     order_source VARCHAR(20) NOT NULL
         CHECK (order_source IN ('ONLINE','PHYSICAL')),
 
