@@ -1,25 +1,12 @@
-resource "aws_cloudwatch_log_group" "lambda" {
-  name              = "/aws/lambda/${var.lambda_function_name}"
-  retention_in_days = 14
-
-  tags = {
-    ManagedBy = "Terraform"
-    Project   = "Qufoods Data Pipeline"
-  }
-}
 resource "aws_lambda_function" "processor" {
 
   function_name = var.lambda_function_name
 
   role = aws_iam_role.lambda_role.arn
 
-  runtime = var.lambda_runtime
+  package_type = "Image"
 
-  handler = var.lambda_handler
-
-  filename = var.lambda_zip_path
-
-  source_code_hash = filebase64sha256(var.lambda_zip_path)
+  image_uri = var.lambda_image_uri #"${aws_ecr_repository.lambda.repository_url}:latest"
 
   timeout = 300
 
@@ -50,8 +37,6 @@ resource "aws_lambda_function" "processor" {
   }
 
   depends_on = [
-
-    aws_cloudwatch_log_group.lambda,
 
     aws_iam_role_policy_attachment.lambda_attachment
 

@@ -36,6 +36,11 @@ variable "lambda_zip_path" {
   default     = "../build/lambda.zip"
 }
 
+variable "lambda_image_uri" {
+  description = "Full ECR image URI for the Lambda container"
+  type        = string
+}
+
 variable "db_host" {
   type = string
 }

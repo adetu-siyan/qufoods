@@ -2,9 +2,9 @@ resource "aws_cloudwatch_event_rule" "every_five_minutes" {
 
   name                = "${var.lambda_function_name}-schedule"
 
-  description         = "Runs the Lambda every 5 minutes"
+  description         = "Runs the Lambda every hour"
 
-  schedule_expression = "rate(5 minutes)"
+  schedule_expression = "rate(1 hour)"
 
 }
 resource "aws_cloudwatch_event_target" "lambda_target" {
