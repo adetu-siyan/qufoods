@@ -1,0 +1,21 @@
+branch_id,branch_name,city,state,address,branch_manager
+BR-01,QuFoods Ikeja,Ikeja,Lagos,"14 Awolowo Way, Ikeja, Lagos",Chukwuemeka Obi
+BR-02,QuFoods Lekki,Lekki Phase 1,Lagos,"22 Admiralty Way, Lekki Phase 1, Lagos",Adaeze Nwosu
+BR-03,QuFoods Victoria Island,Victoria Island,Lagos,"5 Adeola Odeku Street, Victoria Island, Lagos",Babatunde Adeyemi
+BR-04,QuFoods Ibadan Central,"Dugbe, Ibadan",Oyo,"3 Lebanon Street, Dugbe, Ibadan",Folasade Akinwale
+BR-05,QuFoods Bodija,"Bodija, Ibadan",Oyo,"18 Bodija Market Road, Ibadan",Emeka Okafor
+BR-06,QuFoods Abeokuta,"Oke-Mosan, Abeokuta",Ogun,"7 Oke-Mosan Road, Abeokuta",Ngozi Eze
+BR-07,QuFoods Sagamu,Sagamu,Ogun,"31 Akarigbo Street, Sagamu",Oluwaseun Fasanya
+BR-08,QuFoods Akure,"Alagbaka, Akure",Ondo,"9 Alagbaka Estate Road, Akure",Chiamaka Obiora
+BR-09,QuFoods Osogbo,"Oke-Fia, Osogbo",Osun,"12 Oke-Fia Road, Osogbo",Tunde Olawale
+BR-10,QuFoods Abuja Wuse,"Wuse 2, Abuja",FCT,"4 Aminu Kano Crescent, Wuse 2, Abuja",Kelechi Nnamdi
+BR-11,QuFoods Abuja Garki,"Garki, Abuja",FCT,"17 Ibrahim Babangida Way, Garki, Abuja",Amina Yusuf
+BR-12,QuFoods Port Harcourt,"GRA Phase 2, Port Harcourt",Rivers,"6 Olu Obaseki Drive, GRA Phase 2, Port Harcourt",Ifeanyi Okonkwo
+BR-13,QuFoods Warri,"Effurun, Warri",Delta,"22 Refinery Road, Effurun, Warri",Blessing Ovwigho
+BR-14,QuFoods Benin City,"Ugbowo, Benin City",Edo,"5 Ugbowo Lagos Road, Benin City",Osahon Ighalo
+BR-15,QuFoods Enugu,"Independence Layout, Enugu",Enugu,"11 Okpara Avenue, Independence Layout, Enugu",Chidinma Okonkwo
+BR-16,QuFoods Onitsha,Onitsha,Anambra,"33 New Market Road, Onitsha",Obinna Eze
+BR-17,QuFoods Aba,Aba,Abia,"8 Asa Road, Aba",Uche Okoro
+BR-18,QuFoods Kaduna,"Barnawa, Kaduna",Kaduna,"14 Independence Way, Barnawa, Kaduna",Hauwa Ibrahim
+BR-19,QuFoods Kano,"Nasarawa GRA, Kano",Kano,"2 Murtala Mohammed Way, Nasarawa GRA, Kano",Musa Abdullahi
+BR-20,QuFoods Jos,"Rayfield, Jos",Plateau,"19 Hill Station Road, Rayfield, Jos",Comfort Danladi

@@ -17,6 +17,7 @@ env:
   TF_VAR_db_name: ${{ secrets.DB_NAME }}
   TF_VAR_db_username: ${{ secrets.DB_USERNAME }}
   TF_VAR_db_password: ${{ secrets.DB_PASSWORD }}
+  TF_VAR_lambda_image_uri: dummy
 
 jobs:
   deploy:
@@ -26,29 +27,30 @@ jobs:
 
       - name: Checkout Repository
         uses: actions/checkout@v4
-      - name: Setup Python
-        uses: actions/setup-python@v5
-
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
         with:
-          python-version: "3.12"
-      - name: Build Lambda Package
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Build and push image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./lambda
+          push: true
+          tags: |
+            ${{ steps.login-ecr.outputs.registry }}/qufoods-data-processor:${{ github.sha }}
+          provenance: false
 
+      - name: Set image URI
         run: |
+          echo "IMAGE_URI=${{ steps.login-ecr.outputs.registry }}/qufoods-data-processor:${{ github.sha }}" >> $GITHUB_ENV
 
-          mkdir -p build/package
-
-          pip install \
-            -r lambda/requirements-lambda.txt \
-            -t build/package
-
-          cp -r lambda/* build/package/
-
-          cd build/package
-
-          zip -r ../lambda.zip .
-build/
-
-    lambda.zip
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
       - name: Terraform Init
@@ -65,9 +67,18 @@ build/
 
         working-directory: terraform
 
-        run: terraform plan
+#        run: terraform plan
+        run: terraform plan -var="lambda_image_uri=$IMAGE_URI"
       - name: Terraform Apply
 
         working-directory: terraform
 
-        run: terraform apply -auto-approve
+#        run: terraform apply -auto-approve
+        run: terraform apply -auto-approve -var="lambda_image_uri=$IMAGE_URI"
+      - name: Check ECR repositories
+        run: |
+          aws ecr describe-repositories
+      - name: Terraform State
+        working-directory: terraform
+        run: |
+          terraform state list
