@@ -1,5 +1,37 @@
 import pandas as pd
 from db import get_data
+from datetime import datetime, timedelta, timezone
+
+def filter_by_period(sales, period):
+    # Filters the sales dataframe to only include records
+    # within the selected time window
+    # Uses customer_arrival_time as the transaction date
+    
+    if period == "All":
+        # No filter — return everything
+        return sales
+
+    # Convert arrival time to datetime if it isn't already
+    sales = sales.copy()
+    sales["customer_arrival_time"] = pd.to_datetime(
+        sales["customer_arrival_time"], utc=True
+    )
+
+    # Get current time in UTC
+    now = datetime.now(timezone.utc)
+
+    # Calculate the cutoff date based on selected period
+    if period == "Today":
+        cutoff = now.replace(hour=0, minute=0, second=0, microsecond=0)
+    elif period == "1W":
+        cutoff = now - timedelta(weeks=1)
+    elif period == "1M":
+        cutoff = now - timedelta(days=30)
+    elif period == "3M":
+        cutoff = now - timedelta(days=90)
+
+    # Return only records on or after the cutoff
+    return sales[sales["customer_arrival_time"] >= cutoff]
 
 def get_sales():
     df = get_data()
@@ -51,6 +83,11 @@ def payment_method_split(sales):
     return sales["payment_method"].value_counts()
 
 
+
+
+    # TEMPORARY — parses order_items string directly from S3 data
+    # Replace with get_top_items() version on Day 7 DB swap
+    # See db.py get_top_items() for the live database version
 def top_ordered_items(sales, top_n=8):
     # Step 1: Use the typo-corrected column if it exists, otherwise use the original
     # This means the chart works whether or not the cleaning step has run
@@ -165,3 +202,72 @@ def network_transaction_status(sales):
 def total_expenses_network(expenses):
     # Sum all expenses across every branch
     return expenses["amount"].sum()
+
+
+
+
+#Dwell Time for the app
+def avg_dwell_time(sales):
+    # Calculate dwell time in minutes for each transaction
+    # Departure minus arrival gives us the time spent in the branch
+    sales = sales.copy()
+    sales["arrival"] = pd.to_datetime(sales["customer_arrival_time"])
+    sales["departure"] = pd.to_datetime(sales["customer_departure_time"])
+    sales["dwell_minutes"] = (
+        sales["departure"] - sales["arrival"]
+    ).dt.total_seconds() / 60
+
+    # Filter out negative dwell times — these are data entry errors
+    # where departure was recorded before arrival. Including them
+    # would pull the average down artificially.
+    valid = sales[sales["dwell_minutes"] > 0]
+
+    if len(valid) == 0:
+        return 0
+
+    return round(valid["dwell_minutes"].mean(), 1)
+
+
+# After Bukolami normalizes — uses region column from branches table
+def revenue_by_region(sales):
+    # Uses the region column Bukolami populates during ETL
+    # No need to derive Lagos/West/Other manually
+    completed = sales[
+        (sales["transaction_status"] == "COMPLETED") &
+        (sales["total_amount"].notna())
+    ]
+    return (
+        completed.groupby("region")["total_amount"]
+        .sum()
+        .sort_values(ascending=False)
+        .reset_index()
+    )
+
+
+def imputation_summary(sales):
+    total = len(sales)
+    if total == 0:
+        return {"imputed_count": 0, "imputed_pct": 0, "methods": {}}
+
+    # Column only exists in live DB — not in S3 stub data
+    # Returns zeros safely until DB swap is done
+    if "total_amount_imputed" not in sales.columns:
+        return {"imputed_count": 0, "imputed_pct": 0, "methods": {}}
+
+    imputed = sales[sales["total_amount_imputed"] == True]
+    imputed_count = len(imputed)
+    imputed_pct = round(imputed_count / total * 100, 1)
+
+    methods = {}
+    if imputed_count > 0:
+        methods = imputed["imputation_method"].value_counts().to_dict()
+
+    return {
+        "imputed_count": imputed_count,
+        "imputed_pct": imputed_pct,
+        "methods": methods
+    }
+    # Shows what percentage of revenue figures were imputed
+    # rather than directly recorded — a reporting confidence signal
+    # Fields preserved by Bukolami's ETL from the exploration pipeline
+    
