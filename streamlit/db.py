@@ -77,8 +77,18 @@ import pandas as pd
 BATCH_URL = "https://qufoods-raw.s3.amazonaws.com/year=2026/month=06/day=17/batch_BATCH-96bd24c2-7124-4fb5-93e8-f016bd600d67_20260617T154538Z.json"
 
 def get_data():
-    response = requests.get(BATCH_URL)
-    batch = response.json()
-    records = batch["records"]
+    try:
+        response = requests.get(BATCH_URL, timeout=5)
+        response.raise_for_status()
+        batch = response.json()
+        records = batch["records"]
+    except Exception:
+        # Fallback to local data if S3 is unreachable
+        import json, os
+        local_path = os.path.join(os.path.dirname(__file__), "batch_local.json")
+        with open(local_path) as f:
+            batch = json.load(f)
+        records = batch["records"]
+    
     df = pd.DataFrame(records)
     return df
